@@ -8,10 +8,12 @@ namespace Cardapio.ApiService.Services.Service
     public class ProdutoService : IProdutoService
     {
         private readonly IGenericoRepository<ProdutoEntity> _genericoRepository;
+        private readonly IProdutoRepository _produtoRepository;
 
-        public ProdutoService(IGenericoRepository<ProdutoEntity> genericoRepository)
+        public ProdutoService(IGenericoRepository<ProdutoEntity> genericoRepository, IProdutoRepository produtoRepository)
         {
             _genericoRepository = genericoRepository;
+            _produtoRepository = produtoRepository;
         }
 
         public async Task<ProdutoEntity> AdicionarAsync(ProdutoEntity entity)
@@ -55,6 +57,18 @@ namespace Cardapio.ApiService.Services.Service
             try
             {
                 return await _genericoRepository.SelecionarTodosAsync(produto);
+            }
+            catch (Exception ex)
+            {
+                throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+            }
+        }
+
+        public async Task<ProdutoEntity?> SelecionarProdutoPeloCodigo(int codigo)
+        {
+            try
+            {
+                return await _produtoRepository.SelecionarProdutoPeloCodigo(codigo);
             }
             catch (Exception ex)
             {

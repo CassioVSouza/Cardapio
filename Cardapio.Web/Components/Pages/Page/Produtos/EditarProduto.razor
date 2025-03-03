@@ -1,0 +1,99 @@
+﻿@page "/EditarProduto/{codigo:int}"
+@using Cardapio.Web.Models
+@using System.Text.Json
+@using System.Text
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<h3>Criar Produto</h3>
+
+@if(!string.IsNullOrEmpty(_erro)){
+    <p class="text-danger">@_erro</p>
+}
+
+<EditForm Model="ProdutoModel" FormName="produtoPost" OnValidSubmit="AtualizarProdutoAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="mb-3">
+        <label for="nome" class="form-label">Nome do Produto</label>
+        <input type="text" @bind-value="ProdutoModel.nome" class="form-control" id="nome" aria-describedby="nome">
+    </div>
+    <div class="mb-3">
+        <label for="Preco" class="form-label">Preco</label>
+        <input type="text" @bind-value="ProdutoModel.preco" class="form-control" id="Preco">
+    </div>
+    <div class="mb-3">
+        <label for="Descricao" class="form-label">Descrição</label>
+        <textarea class="form-control" @bind="ProdutoModel.descricao" id="Descricao" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    ProdutoModel ProdutoModel { get; set; } = new();
+
+    [Parameter]
+    public int codigo { get; set; }
+
+    private string _erro = string.Empty;
+
+    [Inject]
+    private HttpClient httpClient { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, Configuration.Config._urlBase + $"/PegarProdutoPeloCodigo/{codigo}");
+            var resposta = await httpClient.SendAsync(request);
+            var respostajson = await resposta.Content.ReadAsStringAsync();
+
+            Console.WriteLine(respostajson);
+
+            if (resposta.IsSuccessStatusCode)
+            {
+                ProdutoModel = JsonSerializer.Deserialize<ProdutoModel>(respostajson)!;
+                StateHasChanged();
+            }
+            else
+            {
+                _erro = "Erro ao pegar produto";
+				NavigationManager.NavigateTo("/Teste");
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro: {ex.Message}");
+        }
+    }
+
+    private async Task AtualizarProdutoAsync(){
+        try
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, Configuration.Config._urlBase + "/AtualizarProduto")
+            {
+                Content = new StringContent(JsonSerializer.Serialize(ProdutoModel), Encoding.UTF8, "application/json")
+            };
+
+
+            var resposta = await httpClient.SendAsync(request);
+			var respostajson = await resposta.Content.ReadAsStringAsync();
+            Console.WriteLine(respostajson);
+
+            if (resposta.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/Teste");
+            }
+            else
+            {
+                _erro = "Erro ao atualizar produto";
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro: {ex.Message}");
+        }
+    }
+}

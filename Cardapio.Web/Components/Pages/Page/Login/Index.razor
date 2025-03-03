@@ -1,0 +1,58 @@
+﻿@page "/"
+@using Cardapio.Web.Models
+@using System.Text.Json
+@using System.Text
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<h3>Login</h3>
+
+<EditForm Model="model" FormName="LoginForm" OnValidSubmit="ValidarUsuario">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <input type="text" @bind-value="model.nome" placeholder="nome" />
+    <input type="password" @bind-value="model.senha" placeholder="senha" />
+    <button type="submit">Entrar</button>
+</EditForm>
+
+@code {
+    private ValidacaoUsuarioModel model { get; set; } = new();
+
+    [Inject]
+    private HttpClient _http { get; set; } = null!;
+
+    private async Task ValidarUsuario()
+    {
+        try
+        {
+			HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Get, Configuration.Config._urlBase + "/ValidarUsuario"){
+					Content = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json")
+            };
+
+			var resposta = await _http.SendAsync(httpRequest);
+
+            if (resposta.IsSuccessStatusCode)
+            {
+                var respostaString = await resposta.Content.ReadAsStringAsync();
+                var usuario = JsonSerializer.Deserialize<UsuarioModel>(respostaString);
+
+                if(usuario!.eCozinha){
+                    NavigationManager.NavigateTo("/Teste");
+                }else{
+                    NavigationManager.NavigateTo("/counter");
+                }
+            }
+            else
+            {
+                model.nome = string.Empty;
+                model.senha = string.Empty;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro: {ex.Message}");
+        }
+    }
+}

@@ -8,5 +8,6 @@ namespace Cardapio.ApiService.Services.Interface
         Task<ProdutoEntity> AtualizarAsync(ProdutoEntity entity);
         Task<ProdutoEntity> RemoverAsync(ProdutoEntity entity);
         Task<List<ProdutoEntity>> SelecionarTodosAsync(ProdutoEntity produto);
+        Task<ProdutoEntity?> SelecionarProdutoPeloCodigo(int codigo);
     }
 }

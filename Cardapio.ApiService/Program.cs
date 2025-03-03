@@ -31,6 +31,7 @@ builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 
 var app = builder.Build();
 
@@ -60,7 +61,12 @@ app.MapGet("/ValidarUsuario", async ([FromBody] ValidacaoUsuarioModel validacaoU
     try
     {
         var usuarioExiste = await usuarioService.ValidarUsuarioPeloNomeESenha(validacaoUsuario.nome, validacaoUsuario.senha);
-        return Results.Ok(usuarioExiste);
+        
+
+        if(usuarioExiste != null)
+            return Results.Ok(usuarioExiste);
+
+        return Results.NotFound();
     }
     catch (Exception ex)
     {
@@ -183,11 +189,12 @@ app.MapDelete("/RemoverPedido", async ([FromBody] PedidoEntity pedido, [FromServ
     }
 });
 
-app.MapGet("/PegarTodasAsMesas", async ([FromServices] IMesaService mesaService) => {
-    
+app.MapGet("/PegarTodasAsMesas", async ([FromServices] IMesaService mesaService) =>
+{
+
     var mesas = await mesaService.SelecionarTodosAsync(new MesaEntity());
 
-    if(mesas != null)
+    if (mesas != null)
         return Results.Ok(mesas);
 
     return Results.NotFound();
@@ -225,6 +232,35 @@ app.MapPut("/AtualizarMesa", async ([FromBody] MesaEntity mesa, [FromServices] I
     {
         var mesaResult = await mesaService.AtualizarAsync(mesa);
         return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapGet("/PegarTodosOsProdutos", async ([FromServices] IProdutoService produtoService) =>
+{
+    try
+    {
+        var produtos = await produtoService.SelecionarTodosAsync(new ProdutoEntity());
+        return Results.Ok(produtos);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapGet("/PegarProdutoPeloCodigo/{codigo}", async ([FromRoute] int codigo, [FromServices] IProdutoService produtoService) =>
+{
+    try
+    {
+        var produto = await produtoService.SelecionarProdutoPeloCodigo(codigo);
+        if (produto != null)
+            return Results.Ok(produto);
+
+        return Results.NotFound();
     }
     catch (Exception ex)
     {

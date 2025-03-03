@@ -1,0 +1,77 @@
+﻿@page "/Produtos"
+@using Cardapio.Web.Models
+@using System.Text.Json
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Produtos</PageTitle>
+
+@if(!loading){
+	<table class="table">
+		<thead>
+			<tr>
+				<th scope="col">Codigo</th>
+				<th scope="col">Nome</th>
+				<th scope="col">Preco</th>
+				<th scope="col">Edição</th>
+			</tr>
+		</thead>
+		<tbody>
+			@if (produtos != null && produtos.Count > 0)
+			{
+				@foreach (var produto in produtos)
+				{
+					<tr>
+						@{
+							var preco = "R$ " + produto.preco.ToString();
+						}
+						<td>@produto.codigo</td>
+						<td>@produto.nome</td>
+						<td>@preco</td>
+						<td><button class="btn btn-group" @onclick="() => EditarProduto(produto.codigo)"></button></td>
+					</tr>
+				}
+			}
+		</tbody>
+	</table>
+}else{
+	<p>Carregando...</p>
+}
+
+@code {
+	private List<ProdutoModel> produtos { get; set; } = new();
+	private bool loading = true;
+
+	[Inject]
+	private HttpClient _http { get; set; } = null!;
+
+	protected override async Task OnInitializedAsync()
+	{
+		try{
+			HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, Configuration.Config._urlBase + "/PegarTodosOsProdutos");
+
+			var produtos = await _http.SendAsync(requestMessage);
+
+			if (produtos.IsSuccessStatusCode)
+			{
+				var produtosJson = await produtos.Content.ReadAsStringAsync();
+				Console.WriteLine(produtosJson);
+
+				this.produtos = JsonSerializer.Deserialize<List<ProdutoModel>>(produtosJson)!;
+				loading = false;
+				StateHasChanged();
+			}else{
+				Console.WriteLine("Erro ao pegar os produtos");
+			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+		}
+	}
+
+	private void EditarProduto(int codigo)
+	{
+		NavigationManager.NavigateTo($"/EditarProduto/{codigo}");
+	}
+}

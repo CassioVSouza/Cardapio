@@ -1,0 +1,67 @@
+﻿@page "/AdicionarProduto"
+@using Cardapio.Web.Models
+@using System.Text.Json
+@using System.Text
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<h3>Criar Produto</h3>
+
+@if(!string.IsNullOrEmpty(_erro)){
+    <p class="text-danger">@_erro</p>
+}
+
+<EditForm Model="ProdutoModel" FormName="produtoPost" OnValidSubmit="CriarProdutoAsync">
+    <DataAnnotationsValidator />
+	<ValidationSummary />
+    <div class="mb-3">
+        <label for="nome" class="form-label">Nome do Produto</label>
+        <input type="text" @bind-value="ProdutoModel.nome" class="form-control" id="nome" aria-describedby="nome">
+    </div>
+    <div class="mb-3">
+        <label for="Preco" class="form-label">Preco</label>
+        <input type="text" @bind-value="ProdutoModel.preco" class="form-control" id="Preco">
+    </div>
+    <div class="mb-3">
+        <label for="Descricao" class="form-label">Descrição</label>
+        <textarea class="form-control" @bind="ProdutoModel.descricao" id="Descricao" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    ProdutoModel ProdutoModel { get; set; } = new();
+    private string _erro = string.Empty;
+
+    [Inject]
+    private HttpClient httpClient { get; set; } = null!;
+
+    private async Task CriarProdutoAsync(){
+        try
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, Configuration.Config._urlBase + "/AdicionarProduto")
+            {
+                Content = new StringContent(JsonSerializer.Serialize(ProdutoModel), Encoding.UTF8, "application/json")
+            };
+
+
+            var resposta = await httpClient.SendAsync(request);
+			var respostajson = await resposta.Content.ReadAsStringAsync();
+            Console.WriteLine(respostajson);
+
+            if (resposta.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/Teste");
+            }
+            else
+            {
+                _erro = "Erro ao criar produto";
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro: {ex.Message}");
+        }
+    }
+}

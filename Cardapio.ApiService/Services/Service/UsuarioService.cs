@@ -34,20 +34,20 @@ namespace Cardapio.ApiService.Services.Service
             }
         }
 
-        public async Task<bool> ValidarUsuarioPeloNomeESenha(string nome, string senha)
+        public async Task<UsuarioEntity> ValidarUsuarioPeloNomeESenha(string nome, string senha)
         {
             try
             {
                 var usuario = await _usuarioRepository.SelecionarUsuarioPeloNome(nome);
-                
 
-                if(usuario == null)
-                    return false;
+
+                if (usuario == null)
+                    return null!;
 
                 if (usuario.Nome.Equals(nome) && usuario.Senha.Equals(senha))
-                    return true;
+                    return usuario;
 
-                return false;
+                return null!;
             }
             catch (Exception ex)
             {
