@@ -1,5 +1,5 @@
 ﻿using Cardapio.ApiService.Entities;
-using Cardapio.ApiService.Repositories.Interface.GenericoRepository;
+using Cardapio.ApiService.Repositories.Interface;
 using Cardapio.ApiService.Services.Interface;
 using Grpc.Core;
 

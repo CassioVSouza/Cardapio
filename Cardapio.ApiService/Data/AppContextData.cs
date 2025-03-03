@@ -11,8 +11,6 @@ namespace Cardapio.ApiService.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<PedidoEntity>().HasNoKey();
         }
 
         public DbSet<MesaEntity> Mesa { get; set; }

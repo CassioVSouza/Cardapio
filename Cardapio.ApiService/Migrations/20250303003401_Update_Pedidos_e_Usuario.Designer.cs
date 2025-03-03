@@ -4,6 +4,7 @@ using Cardapio.ApiService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Cardapio.ApiService.Migrations
 {
     [DbContext(typeof(AppContextData))]
-    partial class AppContextDataModelSnapshot : ModelSnapshot
+    [Migration("20250303003401_Update_Pedidos_e_Usuario")]
+    partial class Update_Pedidos_e_Usuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,12 +45,6 @@ namespace Cardapio.ApiService.Migrations
 
             modelBuilder.Entity("Cardapio.ApiService.Entities.PedidoEntity", b =>
                 {
-                    b.Property<int>("Codigo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Codigo"));
-
                     b.Property<int>("CodigoProduto")
                         .HasColumnType("int");
 
@@ -56,13 +53,6 @@ namespace Cardapio.ApiService.Migrations
 
                     b.Property<int>("MesaCodigo")
                         .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.HasKey("Codigo");
 
                     b.HasIndex("CodigoProduto");
 

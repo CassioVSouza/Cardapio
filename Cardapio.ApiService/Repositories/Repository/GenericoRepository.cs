@@ -1,9 +1,9 @@
 ﻿using Cardapio.ApiService.Data;
-using Cardapio.ApiService.Repositories.Interface.GenericoRepository;
+using Cardapio.ApiService.Repositories.Interface;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cardapio.ApiService.Repositories.Repository.GenericoRepository
+namespace Cardapio.ApiService.Repositories.Repository
 {
     public class GenericoRepository<T> : IGenericoRepository<T> where T : class
     {

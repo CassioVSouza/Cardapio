@@ -1,11 +1,13 @@
 using Cardapio.ApiService.Data;
 using Cardapio.ApiService.Entities;
-using Cardapio.ApiService.Repositories.Interface.GenericoRepository;
-using Cardapio.ApiService.Repositories.Repository.GenericoRepository;
 using Cardapio.ApiService.Services.Service;
 using Cardapio.ApiService.Services.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Cardapio.ApiService.Repositories.Repository;
+using Cardapio.ApiService.Repositories.Interface;
+using Microsoft.Extensions.Logging;
+using Cardapio.ApiService.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,8 +24,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppContextData>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped(typeof(IGenericoRepository<>), typeof(GenericoRepository<>));
-builder.Services.AddScoped<IProdutoInterface, ProdutoService>();
+builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<IMesaService, MesaService>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
+builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
 var app = builder.Build();
 
@@ -34,6 +40,134 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.MapGet("/PegarTodosOsUsuarios", ([FromServices] IUsuarioService usuarioService) =>
+{
+    try
+    {
+        var usuarios = usuarioService.SelecionarTodosUsuarios(new UsuarioEntity());
+        return Results.Ok(usuarios);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapPost("/AdicionarUsuario", async ([FromBody] UsuarioEntity usuario, [FromServices] IUsuarioService usuarioService) =>
+{
+    try
+    {
+        var usuarioResult = await usuarioService.AdicionarUsuario(usuario);
+        return Results.Ok();
+    }
+    catch (ErroUsuarioJaExiste)
+    {
+        return Results.BadRequest("ErroNome");
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapPut("/AtualizarUsuario", async ([FromBody] UsuarioEntity usuario, [FromServices] IUsuarioService usuarioService) =>
+{
+    try
+    {
+        var usuarioResult = await usuarioService.AtualizarUsuario(usuario);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapDelete("/RemoverUsuario", async ([FromBody] UsuarioEntity usuario, [FromServices] IUsuarioService usuarioService) =>
+{
+    try
+    {
+        var usuarioResult = await usuarioService.RemoverUsuario(usuario);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapGet("/PegarTodosOsPedidos", async ([FromServices]IPedidoService perdidoService) =>
+{
+    try
+    {
+        var pedidos = await perdidoService.SelecionarTodosPedidosAsync(new PedidoEntity());
+
+        if (pedidos != null)
+            return Results.Ok(pedidos);
+
+        return Results.NotFound();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapGet("/PegarPedidosPeloStatus/{status}", async  ([FromRoute]string status, [FromServices]IPedidoService pedidosService) =>
+{
+    try
+    {
+        var pedidos = await pedidosService.RetornarPedidosPeloStatus(status);
+        if (pedidos != null)
+            return Results.Ok(pedidos);
+
+        return Results.NotFound();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapPost("/AdicionarPedido", async ([FromBody] PedidoEntity pedido, [FromServices] IPedidoService pedidoService) =>
+{
+    try
+    {
+        var pedidoResult = await pedidoService.AdicionarPedidoAsync(pedido);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapPut("/AtualizarPedido", async ([FromBody] PedidoEntity pedido, [FromServices] IPedidoService pedidoService) =>
+{
+    try
+    {
+        var pedidoResult = await pedidoService.AtualizarPedidoAsync(pedido);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapDelete("/RemoverPedido", async ([FromBody] PedidoEntity pedido, [FromServices] IPedidoService pedidoService) =>
+{
+    try
+    {
+        var pedidoResult = await pedidoService.RemoverPedidoAsync(pedido);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
 
 app.MapGet("/PegarTodasAsMesas", async ([FromServices] IMesaService mesaService) => {
     
@@ -84,7 +218,7 @@ app.MapPut("/AtualizarMesa", async ([FromBody] MesaEntity mesa, [FromServices] I
     }
 });
 
-app.MapPost("/AdicionarProduto", async ([FromBody] ProdutoEntity produto, [FromServices] IProdutoInterface produtoService) =>
+app.MapPost("/AdicionarProduto", async ([FromBody] ProdutoEntity produto, [FromServices] IProdutoService produtoService) =>
 {
     try
     {
@@ -97,7 +231,7 @@ app.MapPost("/AdicionarProduto", async ([FromBody] ProdutoEntity produto, [FromS
     }
 });
 
-app.MapPut("/AtualizarProduto", async ([FromBody] ProdutoEntity produto, [FromServices] IProdutoInterface produtoServuce) =>
+app.MapPut("/AtualizarProduto", async ([FromBody] ProdutoEntity produto, [FromServices] IProdutoService produtoServuce) =>
 {
     try
     {
@@ -110,7 +244,7 @@ app.MapPut("/AtualizarProduto", async ([FromBody] ProdutoEntity produto, [FromSe
     }
 });
 
-app.MapDelete("/RemoverProduto", async ([FromBody] ProdutoEntity produto, [FromServices] IProdutoInterface produtoService) =>
+app.MapDelete("/RemoverProduto", async ([FromBody] ProdutoEntity produto, [FromServices] IProdutoService produtoService) =>
 {
     try
     {

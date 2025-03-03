@@ -10,5 +10,6 @@ namespace Cardapio.ApiService.Entities
         public string Nome { get; set; } = null!;
         [StringLength(50)]
         public string Senha { get; set; } = null!;
+        public bool ECozinha { get; set; }
     }
 }

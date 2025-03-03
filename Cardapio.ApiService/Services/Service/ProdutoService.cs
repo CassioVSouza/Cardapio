@@ -1,11 +1,11 @@
 ﻿using Cardapio.ApiService.Entities;
-using Cardapio.ApiService.Repositories.Interface.GenericoRepository;
+using Cardapio.ApiService.Repositories.Interface;
 using Cardapio.ApiService.Services.Interface;
 using Grpc.Core;
 
 namespace Cardapio.ApiService.Services.Service
 {
-    public class ProdutoService : IProdutoInterface
+    public class ProdutoService : IProdutoService
     {
         private readonly IGenericoRepository<ProdutoEntity> _genericoRepository;
 

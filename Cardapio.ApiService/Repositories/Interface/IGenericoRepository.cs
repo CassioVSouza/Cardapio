@@ -1,4 +1,4 @@
-﻿namespace Cardapio.ApiService.Repositories.Interface.GenericoRepository
+﻿namespace Cardapio.ApiService.Repositories.Interface
 {
     public interface IGenericoRepository<T> where T : class
     {

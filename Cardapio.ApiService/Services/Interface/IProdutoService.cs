@@ -2,7 +2,7 @@
 
 namespace Cardapio.ApiService.Services.Interface
 {
-    public interface IProdutoInterface
+    public interface IProdutoService
     {
         Task<ProdutoEntity> AdicionarAsync(ProdutoEntity entity);
         Task<ProdutoEntity> AtualizarAsync(ProdutoEntity entity);
