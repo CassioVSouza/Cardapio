@@ -8,6 +8,7 @@ using Cardapio.ApiService.Repositories.Repository;
 using Cardapio.ApiService.Repositories.Interface;
 using Microsoft.Extensions.Logging;
 using Cardapio.ApiService.Exceptions;
+using Cardapio.ApiService.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,12 +42,25 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.MapGet("/PegarTodosOsUsuarios", ([FromServices] IUsuarioService usuarioService) =>
+app.MapGet("/PegarTodosOsUsuarios", async ([FromServices] IUsuarioService usuarioService) =>
 {
     try
     {
-        var usuarios = usuarioService.SelecionarTodosUsuarios(new UsuarioEntity());
+        var usuarios = await usuarioService.SelecionarTodosUsuarios(new UsuarioEntity());
         return Results.Ok(usuarios);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapGet("/ValidarUsuario", async ([FromBody] ValidacaoUsuarioModel validacaoUsuario, [FromServices] IUsuarioService usuarioService) =>
+{
+    try
+    {
+        var usuarioExiste = await usuarioService.ValidarUsuarioPeloNomeESenha(validacaoUsuario.nome, validacaoUsuario.senha);
+        return Results.Ok(usuarioExiste);
     }
     catch (Exception ex)
     {
